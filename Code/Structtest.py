@@ -31,12 +31,12 @@ sourceIpv4 = {''}
 
 def searchforframe(_frameHeader, ipsource, ipdesti):
     for i in range(0,len(_frameHeader)):
-        if(_frameHeader[i].ipsourc ==ipsource and _frameHeader[i].ipdesti ==ipdesti):
+        if(_frameHeader[i].ipsourc == ipsource and _frameHeader[i].ipdesti == ipdesti):
             return i
     return -1
 
+
 def AddtoFrame(_frameHeader, ipsource, ipdesti, count):
-    #print(searchforframe(_frameHeader, ipsource, ipdesti), len(_frameHeader))
     if (searchforframe(_frameHeader, ipsource, ipdesti ) == -1):
         #print("Them moi vao")
         Frame = frameHeader()
@@ -48,31 +48,38 @@ def AddtoFrame(_frameHeader, ipsource, ipdesti, count):
     else:
         #print("Chinh sua moi vao")
         _frameHeader[searchforframe(_frameHeader, ipsource, ipdesti)].count += 1
-
+        #print(searchforframe(_frameHeader,"192.168.10.2","192.168.10.2"))"""
+def printFrame(_frameHeader):
+    for i in range(0,len(_frameHeader)):
+        print(_frameHeader[i].ipsourc.__str__() +" "+_frameHeader[i].ipdesti.__str__()+" "+_frameHeader[i].count.__str__())
 def count():
     print('hala')
-
+def RefreshlistFrame(_listFrame):
+    for i in range(0,len(_listFrame)-1):
+        if _listFrame[i].time == 1:
+            return
 # Xuat data Ethernet
-def checkSniffer(eth):
+def checkSniffer(eth,_listFrameEth):
     print('\nEthernet Frame:')
-    FrameEth = []
     # IPv4
     if eth.proto == 8:
         ipv4 = IPv4(eth.data)
-        AddtoFrame(FrameEth, ipv4.src, ipv4.target, 1)
-        print(FrameEth[len(FrameEth)-1].ipsourc,FrameEth[len(FrameEth)-1].ipdesti, FrameEth[len(FrameEth)-1].count,FrameEth[len(FrameEth)-1].time)
+        AddtoFrame(_listFrameEth, ipv4.src, ipv4.target, 1)
+        #print(_listFrameEth[len(_listFrameEth)-1].ipsourc,_listFrameEth[len(_listFrameEth)-1].ipdesti, _listFrameEth[len(_listFrameEth)-1].count,_listFrameEth[len(_listFrameEth)-1].time)
     #else:
         #print('Ethernet Data: = Protocol != 8' + str(eth.proto))
+    printFrame(_listFrameEth)
 # Luu du lieu data_raw vao pcap
 def sniffer():
     str = 'capture' + datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
     pcap = Pcap('Capture/' + str + '.pcap')
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
+    listFrame = []
     while True:
         raw_data, addr = conn.recvfrom(65535)
         pcap.write(raw_data)
         ethernetdata = Ethernet(raw_data)
-        checkSniffer(ethernetdata)
+        checkSniffer(ethernetdata,listFrame)
     pcap.close()
 
 

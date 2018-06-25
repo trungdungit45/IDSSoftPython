@@ -1,16 +1,13 @@
-import socket
-import datetime
-from general import *
-from networking.ethernet import Ethernet
-from networking.ipv4 import IPv4
-from networking.icmp import ICMP
-from networking.tcp import TCP
-from networking.udp import UDP
-from networking.pcap import Pcap
-from networking.http import HTTP
-import sys
+import textwrap
 
+
+# Returns MAC as string from bytes (ie AA:BB:CC:DD:EE:FF)
+def get_mac_addr(mac_raw):
+    byte_str = map('{:02x}'.format, mac_raw)
+    mac_addr = ':'.join(byte_str).upper()
+    return mac_addr
 def main():
-    sys.stdout.write('{0:4}\t{1:4}'.format('hehe','haha'))
+	Age = b'\xF8\x08\x08\x08'
+	print(get_mac_addr(Age).__str__())
 
 main()

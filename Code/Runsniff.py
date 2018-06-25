@@ -8,6 +8,7 @@ from networking.tcp import TCP
 from networking.udp import UDP
 from networking.pcap import Pcap
 from networking.http import HTTP
+import sys
 
 TAB_1 = '\t - '
 TAB_2 = '\t\t - '
@@ -62,7 +63,7 @@ def AddtoFrame(_frameHeader, ipsource, ipdesti, count, proto, flagfin, flagsyn ,
         Frame = frameHeader()
         Frame.ipsourc = ipsource
         Frame.ipdesti = ipdesti
-        Frame.time = datetime.datetime.now().strftime("%H%M%S")
+        Frame.time = datetime.datetime.now().strftime('%H%M%S')
         Frame.count = count
         Frame.proto = proto
         Frame.flagfin = flagfin
@@ -77,12 +78,11 @@ def AddtoFrame(_frameHeader, ipsource, ipdesti, count, proto, flagfin, flagsyn ,
         _frameHeader[searchforframe(_frameHeader, ipsource, ipdesti, proto, flagfin, 
             flagsyn ,flagrst ,flagpsh ,flagack ,flagurg)].count += 1
         _frameHeader[searchforframe(_frameHeader, ipsource, ipdesti, proto, flagfin, 
-            flagsyn ,flagrst ,flagpsh ,flagack ,flagurg)].time == datetime.datetime.now().strftime("%H%M%S")
+            flagsyn ,flagrst ,flagpsh ,flagack ,flagurg)].time == datetime.datetime.now().strftime('%H%M%S')
 def printFrame(_frameHeader):
     for i in range(0,len(_frameHeader)):
-        print(_frameHeader[i].ipsourc.__str__() +" "+_frameHeader[i].ipdesti.__str__()+" "+_frameHeader[i].count.__str__())
-def count():
-    print('hala')
+        sys.stdout.write(_frameHeader[i].ipsourc.__str__() +' '+_frameHeader[i].ipdesti.__str__()+' '+_frameHeader[i].count.__str__())
+        #sys.stdout.write('hala')
 #Xuat data Ethernet
 def compareTime(timeStart, timeFinish):
     _timeStart = int(timeStart[0:2])*3600 + int(timeStart[2:4]) + int(timeStart[4:6])
@@ -97,25 +97,26 @@ def RefreshlistFrame(_listFrame, ipsource, ipdesti, proto,flagfin, flagsyn ,flag
         flagfin, flagsyn ,flagrst ,flagpsh ,flagack ,flagurg)].count +=1
     listF = []
     for i in range(0,len(_listFrame)-1):
-        if (compareTime(datetime.datetime.now().strftime("%H%M%S"), _listFrame[i].time) > 10):
+        if (compareTime(datetime.datetime.now().strftime('%H%M%S'), _listFrame[i].time) > 10):
             if (_listFrame[i].count == 1):
                 listF.append(i)
             else:
                 _listFrame[i].count -= 1
     for x in range(len(listF),0):
-        if (compareTime(datetime.datetime.now().strftime("%H%M%S"), _listFrame[x].time) > 10):
+        if (compareTime(datetime.datetime.now().strftime('%H%M%S'), _listFrame[x].time) > 10):
             _listFrame.remove(_listFrame[listF[x]])
     return
 def printSniffer(eth,count,_Warning):
     if eth.proto == 8:
-        #print(TAB_1 + 'ethproto=8')
+        #sys.stdout.write(TAB_1 + 'ethproto=8')
         ipv4 = IPv4(eth.data)
         ipv4src = ipv4.src.__str__()
         ipv4target = ipv4.target.__str__()
         if ipv4.proto == 1:
             icmp = ICMP(ipv4.data)
             icmpinfo = 'Type:'+icmp.type.__str__() +'Code'+ icmp.code.__str__() +'Checksum'+ icmp.checksum.__str__()
-            print('{0:5}\t{1:8}\t{2:15}\t{3:15}\t{4:8}\t{5:6}\t\t{6}'.format(count.__str__(),"Timeeeee",ipv4.src, ipv4.target,'ICMP',len(icmp.data).__str__(),_Warning.__str__()))
+            sys.stdout.write('{0:5}\t{1:8}\t{2:15}\t{3:15}\t{4:8}\t{5:6}\t\t{6}\n'
+            .format(count.__str__(),'Timeeeee',ipv4.src, ipv4.target,'ICMP',len(icmp.data).__str__(),_Warning.__str__()))
         # TCP
         elif ipv4.proto == 6:
             tcp = TCP(ipv4.data)
@@ -125,35 +126,37 @@ def printSniffer(eth,count,_Warning):
             
                 #HTTP
                 if tcp.src_port == 80 or tcp.dest_port == 80:
-                    print(TAB_2 + 'HTTP Data:')
+                    sys.stdout.write(TAB_2 + 'HTTP Data:')
                     try:
                         http = HTTP(tcp.data)
                         http_info = str(http.data).split('\n')
                         for line in http_info:
-                            print(DATA_TAB_3 + str(line))
+                            sys.stdout.write(DATA_TAB_3 + str(line))
                     except:
-                        print(format_multi_line(DATA_TAB_3, tcp.data))
+                        sys.stdout.write(format_multi_line(DATA_TAB_3, tcp.data))
                 else:
-                    print(TAB_2 + 'TCP Data:')
-                    #print(format_multi_line(DATA_TAB_3, tcp.data))
+                    sys.stdout.write(TAB_2 + 'TCP Data:')
+                    #sys.stdout.write(format_multi_line(DATA_TAB_3, tcp.data))
             '''
-            print('{0:5}\t{1:8}\t{2:15}\t{3:15}\t{4:8}\t{5:6}\t\t{6}'.format(count,'Timeeeee',ipv4.src, ipv4.target,'TCP',len(tcp.data),_Warning))       
+            sys.stdout.write('{0:5}\t{1:8}\t{2:15}\t{3:15}\t{4:8}\t{5:6}\t\t{6}\n'
+            .format(count,'Timeeeee',ipv4.src, ipv4.target,'TCP',len(tcp.data),_Warning))       
         # UDP
         elif ipv4.proto == 17:
-            #print(TAB_1 + 'ethproto=17')
+            #sys.stdout.write(TAB_1 + 'ethproto=17')
             udp = UDP(ipv4.data)
             udpinfo = 'SrcPort: {}, DestPort:{}, Length'.format(udp.src_port, udp.dest_port,udp.size)
-            #print(TAB_1 + 'UDP Segment:')
-            #print(TAB_2 + 'Source Port: {}, Destination Port: {}, Length: {}'.format(udp.src_port, udp.dest_port,udp.size))
-            print('{0:5}\t{1:8}\t{2:15}\t{3:15}\t{4:8}\t{5:6}\t\t{6}'.format(count,"Timeeeee",ipv4.src, ipv4.target,'UDP',len(udp.data),_Warning))
+            #sys.stdout.write(TAB_1 + 'UDP Segment:')
+            #sys.stdout.write(TAB_2 + 'Source Port: {}, Destination Port: {}, Length: {}'.format(udp.src_port, udp.dest_port,udp.size))
+            sys.stdout.write('{0:5}\t{1:8}\t{2:15}\t{3:15}\t{4:8}\t{5:6}\t\t{6}\n'
+            .format(count,'Timeeeee',ipv4.src, ipv4.target,'UDP',len(udp.data),_Warning))
         # Other IPv4
         else:
-            print(TAB_1 + 'Other IPv4 Data:')
-            print(format_multi_line(DATA_TAB_2, ipv4.data))
+            sys.stdout.write(TAB_1 + 'Other IPv4 Data:')
+            sys.stdout.write(format_multi_line(DATA_TAB_2, ipv4.data))
 
     else:
-        print('Ethernet Data: = Protocol != 8  {}'.format(eth.proto))
-        # print(format_multi_line(DATA_TAB_1, eth.data))
+        sys.stdout.write('Ethernet Data: = Protocol != 8  {}\n'.format(eth.proto))
+        # sys.stdout.write(format_multi_line(DATA_TAB_1, eth.data))
 #Luu du lieu data_raw vao pcap
 def checkXmasScan(_listFrameEth, ipsource, ipdesti, proto, flagfin, flagsyn ,flagrst ,flagpsh ,flagack ,flagurg):   
     if (searchIPsrc(_listFrameEth,ipsource)) == -1:
@@ -243,19 +246,19 @@ def checkPingofDeath(_listFrameEth, ipsource, ipdesti, proto, flagfin, flagsyn ,
 def checkDosAttack():
     return -1
 def checkWarning(_Warning):
-    Warningreturn = "No Problem"
+    Warningreturn = 'No Problem'
     if _Warning == 0:
-        Warningreturn = "No Problem"
+        Warningreturn = 'No Problem'
     elif _Warning == 1:
-        Warningreturn = "XMas Scan"
+        Warningreturn = 'XMas Scan'
     elif _Warning == 2:
-        Warningreturn = "Fin Scan"
+        Warningreturn = 'Fin Scan'
     elif _Warning == 3:
-        Warningreturn = "Null Scan"
+        Warningreturn = 'Null Scan'
     elif _Warning == 4:
-        Warningreturn = "Ping of Death"
+        Warningreturn = 'Ping of Death'
     elif _Warning == 5:
-        Warningreturn = "Dos Attack - Land Attack"
+        Warningreturn = 'Dos Attack - Land Attack'
     return Warningreturn
 def checkSniffer(eth,_listFrameEth):
     _WarningEth = 0
@@ -299,15 +302,16 @@ def checkSniffer(eth,_listFrameEth):
                 _WarningEth = checkNULLScan(_listFrameEth, ipsource, ipdesti, proto, flagfin, flagsyn ,flagrst ,flagpsh, flagack, flagurg)
         #printFrame(_listFrameEth)
         RefreshlistFrame(_listFrameEth, ipsource, ipdesti, proto,flagfin, flagsyn ,flagrst ,flagpsh ,flagack ,flagurg)
-        #print("Sau khi refresh")
+        #sys.stdout.write('Sau khi refresh')
         #printFrame(_listFrameEth)
         AddtoFrame(_listFrameEth, ipsource, ipdesti, 1,proto, flagfin, flagsyn ,flagrst ,flagpsh ,flagack ,flagurg)
         return _WarningEth
 def sniffer():
-    str = 'capture'+datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
+    str = 'capture'+datetime.datetime.now().strftime('%d%m%Y_%H%M%S')
     pcap = Pcap('Capture/'+str+'.pcap')
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
-    print('{0:5}\t{1:8}\t{2:15}\t{3:15}\t{4:8}\t{5:6}\t\t{6}'.format('No','Time','Source','Destination','Protocol','Length','Info'))
+    sys.stdout.write('{0:5}\t{1:8}\t{2:15}\t{3:15}\t{4:8}\t{5:6}\t\t{6}\n'
+    .format('No','Time','Source','Destination','Protocol','Length','Info'))
     _count = 1
     _listFrame = []
     while True:
@@ -320,6 +324,7 @@ def sniffer():
         _count += 1
     pcap.close()
 def main():
+    sys.stdout.write('haha\n')
     sniffer()
-
-main()
+if __name__== '__main__':
+    main()
